@@ -11,10 +11,10 @@ from tweepy import API
 
 
 # keys and tokens from the Twitter Dev Console 						(Before committing remember to hide)
-consumer_key = "Insert Yours Here"
-consumer_secret = "Insert Yours Here"
-access_token = "Insert Yours Here"
-access_token_secret = "Insert Yours Here"
+consumer_key = "f81rnWk1xGOy61lqDAQ6VQ7Ms"
+consumer_secret = "aLtuyVIPugaluuPAohqngAezTOP7z7BDR4ljIR9oWcAllOD9Nl"
+access_token = "179606045-AzWfFpunUf73A354XenHJbzbi4HBI6IVwWI2AVxc"
+access_token_secret = "mw3czr0T295Z8CAR9GMZQipZxQfjB7uUvC6FGmpgkcNvb"
 
 
 def getTweets(username):
@@ -40,7 +40,7 @@ def getTweets(username):
 	for i in range(0, (len(tweetsCSV))):
 		try:
 			text = (str)(tweetsCSV[i])
-			print "{} | {}".format(text, getHashTags(text))
+			print "Text: {} | Mentions: {} | Hashtags: {}".format(text, getMentions(text), getHashTags(text))
 			allData[dateCSV[i]] = Tweet.Tweet(text, getMentions(text), getHashTags(text))
 		except:
 			continue		
