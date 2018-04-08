@@ -1,14 +1,17 @@
+#!/usr/bin/python
 import functions
 import Tweet
+import parser
 import os
+import sys
+
+# This is the main driver method.
+# It takes 1 argument:
+#	- One twitter handle (without the @)
 
 def main():
-	os.system("python functions.py")
-	os.system("python Tweet.py")
-
-	data = {"Shawn": Tweet.Tweet("I Hate @Shawn",["@Shawn"],[]),
-			"Bob": Tweet.Tweet("Goodbye, @Bob",["@Bob"],[])}
-	functions.printData(data)
+	data = parser.getTweets(sys.argv[1])
+	functions.printMentionHashtagSentiment(data)
 
 if __name__== "__main__":
   main()

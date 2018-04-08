@@ -7,7 +7,7 @@ from datetime import datetime, date, time, timedelta
 from collections import Counter
 import sys
 
-# Authentification need from twitter develloper account
+# Authentification need from twitter developer account
 
 # Consumer Key (API Key)	f81rnWk1xGOy61lqDAQ6VQ7Ms
 # Consumer Secret (API Secret)	aLtuyVIPugaluuPAohqngAezTOP7z7BDR4ljIR9oWcAllOD9Nl
