@@ -1,101 +1,119 @@
 # -*- coding: utf-8 -*-
+import re
 import tweepy
 from tweepy import OAuthHandler
-from tweepy import API
-from tweepy import Cursor
-from datetime import datetime, date, time, timedelta
-from collections import Counter
-import sys
-
+from textblob import TextBlob
 # Authentification need from twitter develloper account
 
-# Consumer Key (API Key)	f81rnWk1xGOy61lqDAQ6VQ7Ms
-# Consumer Secret (API Secret)	aLtuyVIPugaluuPAohqngAezTOP7z7BDR4ljIR9oWcAllOD9Nl
-# Access Level	Read and write (modify app permissions)
-# Owner	mouctarjalloh
-# Owner ID	179606045
-# Access Token	179606045-AzWfFpunUf73A354XenHJbzbi4HBI6IVwWI2AVxc
-# Access Token Secret	mw3czr0T295Z8CAR9GMZQipZxQfjB7uUvC6FGmpgkcNvb
 
-consumer_key="f81rnWk1xGOy61lqDAQ6VQ7Ms"
-consumer_secret="aLtuyVIPugaluuPAohqngAezTOP7z7BDR4ljIR9oWcAllOD9Nl"
-access_token="179606045-AzWfFpunUf73A354XenHJbzbi4HBI6IVwWI2AVxc"
-access_token_secret="mw3czr0T295Z8CAR9GMZQipZxQfjB7uUvC6FGmpgkcNvb"
- 
-auth = OAuthHandler(consumer_key, consumer_secret)
-auth.set_access_token(access_token, access_token_secret)
-auth_api = API(auth)
+class TwitterClient(object):
+	#Generic Twitter Class for sentiment analysis.
 
+	def __init__(self):
 
-# Names of accounts to be queried will be passed in as command-line arguments. 
-# I’m going to exit the script if no args are passed, since there would be no reason to continue.
+		#Class constructor or initialization method.
 
-account_list = []
-if (len(sys.argv) > 1):
-  account_list = sys.argv[1:]
-else:
-  print("Please provide a list of usernames at the command line.")
-  sys.exit(0)
+		# keys and tokens from the Twitter Dev Console
+		consumer_key = ""
+		consumer_secret = ""
+		access_token = ""
+		access_token_secret = ""
 
-# through the account names passed and use tweepy’s API.get_user() to obtain a few details about the queried account.
+		# attempt authentication
+		try:
+		    # create OAuthHandler object
+		    self.auth = OAuthHandler(consumer_key, consumer_secret)
+		    # set access token and secret
+		    self.auth.set_access_token(access_token, access_token_secret)
+		    # create tweepy API object to fetch tweets
+		    self.api = tweepy.API(self.auth)
+		except:
+		    print("Error: Authentication Failed")
 
-if len(account_list) > 0:
-  for target in account_list:
-    print("Getting data for " + target)
-    item = auth_api.get_user(target)
-    print("name: " + item.name)
-    print("screen_name: " + item.screen_name)
-    print("description: " + item.description)
-    print("statuses_count: " + str(item.statuses_count))
-    print("friends_count: " + str(item.friends_count))
-    print("followers_count: " + str(item.followers_count))
+	def clean_tweet(self, tweet):
+	    '''
+	    function to clean tweet text 
+	    '''
+	    return ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", tweet).split())
 
+	def get_tweet_sentiment(self, tweet):
+	    '''
+	    function to classify sentiment of passed tweet
+	    '''
+	    # create TextBlob object of passed tweet text
+	    analysis = TextBlob(self.clean_tweet(tweet))
+	    # set sentiment
+	    if analysis.sentiment.polarity > 0:
+	        return 'positive'
+	    elif analysis.sentiment.polarity == 0:
+	        return 'neutral'
+	    else:
+	        return 'negative'
 
-tweets = item.statuses_count
-account_created_date = item.created_at
-delta = datetime.utcnow() - account_created_date
-account_age_days = delta.days
-print("Account age (in days): " + str(account_age_days))
-if account_age_days > 0:
-  print("Average tweets per day: " + "%.2f"%(float(tweets)/float(account_age_days)))
+	def get_tweets(self, query, count = 10):
+	    '''
+	    Main function to fetch tweets and parse them.
+	    '''
+	    # empty list to store parsed tweets
+	    tweets = []
 
+	    try:
+	        # call twitter api to fetch tweets
+	        fetched_tweets = self.api.search(q = query, count = count)
 
-hashtags = []
-mentions = []
-tweet_count = 0
-end_date = datetime.utcnow() - timedelta(days=30)
-for status in Cursor(auth_api.user_timeline, id=target).items():
-  tweet_count += 1
-  if hasattr(status, "entities"):
-    entities = status.entities
-    if "hashtags" in entities:
-      for ent in entities["hashtags"]:
-        if ent is not None:
-          if "text" in ent:
-            hashtag = ent["text"]
-            if hashtag is not None:
-              hashtags.append(hashtag)
-    if "user_mentions" in entities:
-      for ent in entities["user_mentions"]:
-        if ent is not None:
-          if "screen_name" in ent:
-            name = ent["screen_name"]
-            if name is not None:
-              mentions.append(name)
-  if status.created_at < end_date:
-    break
-# Finally, we’ll use Counter.most_common() to print out the ten most used hashtags and mentions.
+	        # parsing tweets one by one
+	        for tweet in fetched_tweets:
+	            # empty dictionary to store required params of a tweet
+	            parsed_tweet = {}
 
-print
-print("Most mentioned Twitter users:")
-for item, count in Counter(mentions).most_common(10):
-  print(item + "\t" + str(count))
+	            # saving text of tweet
+	            parsed_tweet['text'] = tweet.text
+	            # saving sentiment of tweet
+	            parsed_tweet['sentiment'] = self.get_tweet_sentiment(tweet.text)
 
-print
-print("Most used hashtags:")
-for item, count in Counter(hashtags).most_common(10):
-  print(item + "\t" + str(count))
+	            # appending parsed tweet to tweets list
+	            if tweet.retweet_count > 0:
+	                # if tweet has retweets, ensure that it is appended only once
+	                if parsed_tweet not in tweets:
+	                    tweets.append(parsed_tweet)
+	            else:
+	                tweets.append(parsed_tweet)
 
-print
-print "All done. Processed " + str(tweet_count) + " tweets."
-print
+	        # return parsed tweets
+	        return tweets
+
+	    except tweepy.TweepError as e:
+	        # print error (if any)
+	        print("Error : " + str(e))
+
+def main():
+	# creating object of TwitterClient Class
+	api = TwitterClient()
+	# calling function to get tweets
+	tweets = api.get_tweets(query = 'Donald Trump', count = 200)
+
+	# picking positive tweets from tweets
+	ptweets = [tweet for tweet in tweets if tweet['sentiment'] == 'positive']
+	# percentage of positive tweets
+	print("Positive tweets percentage: {} %".format(100*len(ptweets)/len(tweets)))
+	# picking negative tweets from tweets
+	ntweets = [tweet for tweet in tweets if tweet['sentiment'] == 'negative']
+	# percentage of negative tweets
+	print("Negative tweets percentage: {} %".format(100*len(ntweets)/len(tweets)))
+	# percentage of neutral tweets
+	print("Neutral tweets percentage: {} % \
+	    ".format(100*len(tweets - ntweets - ptweets)/len(tweets)))
+
+	# printing first 5 positive tweets
+	print("\n\nPositive tweets:")
+	for tweet in ptweets[:10]:
+	    print(tweet['text'])
+
+	# printing first 5 negative tweets
+	print("\n\nNegative tweets:")
+	for tweet in ntweets[:10]:
+	    print(tweet['text'])
+
+if __name__ == "__main__":
+# calling main function
+	main()
