@@ -1,6 +1,7 @@
 # BitCamp 2018 - Twitter Emotion/Sentiment Analysis
 
 4/6/18 - 4/8/18
+
 By: Mamadou Mouctar and Shawn Jassal
 
 This project was made during the 2018 BitCamp event at the University of Maryland College Park. We did this as an expierence to expose ourselves to new applications that we had not yet used.
