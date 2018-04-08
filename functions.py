@@ -1,4 +1,7 @@
-import tweet
+import Tweet
+# import datetime
+
+# This file holds the various functions after the data has been
 
 # Paramters: Hash table of data (Key = date, Value = tweet(Object))
 # Return: New Hashmap (Key = mention Name, Value = Average sentiment rating)
@@ -27,11 +30,12 @@ def analyzeHashtags(data):
 
 
 # Prints out the mentions and hashtags with their average sentiment ratings
-def printData(data):
+def printMentionHashtagSentiment(data):
 	dataMentions = analyzeMentions(data)
 	dataHashTags = analyzeHashtags(data)
 
-	print "Sentiment Readings"
+	print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+	print "Emotion/Sentiment Readings"
 	print "100% = Extrememly Positive"
 	print "50% = Neutral"
 	print "0% = Extrememly Negative"
@@ -45,3 +49,11 @@ def printData(data):
 	if dataHashTags is not None:
 		for hashtag in dataHashTags.keys():
 			print "Hashtag: {} | Sentiment: {}%".format(hashtag, dataHashTags[hashtag])
+
+
+# def printDateSentiment(data):
+# 	sortedDate = data.keys().sort()
+
+# 	print "--------------------"
+# 	for date in sortedDate:
+# 		print "Date: {} | Sentiment: {}%".format(hashtag, data[date].sentiment)
